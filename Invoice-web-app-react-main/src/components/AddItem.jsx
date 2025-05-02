@@ -74,11 +74,8 @@ function AddItem({ itemDetails, setItem, isValidatorActive, onDelete, handleOnCh
                     </div>
 
                     {/* Total */}
-                    <div className='flex px-2 py-2 flex-col items-start'>
-                        <h1>Total</h1>
-                        <div className='max-w-[100px] dark:bg-[#1e2139] py-2 px-4 border-[.2px] rounded-lg focus:outline-none focus:outline-purple-400 border-gray-300 dark:border-gray-800 dark:text-white'>
-                            {itemDetails.total}
-                        </div>
+                    <div className='max-w-[100px] dark:bg-[#1e2139] py-2 px-4 border-[.2px] rounded-lg focus:outline-none focus:outline-purple-400 border-gray-300 dark:border-gray-800 dark:text-white'>
+                        {(itemDetails.usage * itemDetails.price).toFixed(2)} {/* Perhitungan Total */}
                     </div>
                 </div>
 

@@ -1,22 +1,21 @@
 export function formatCurrency(value, currency = 'USD') {
-  const validCurrency = currency || 'USD';
-  const locale = validCurrency === 'IDR' ? 'id-ID' : 'en-US';
+  const locale = currency === 'IDR' ? 'id-ID' : 'en-US';
 
-  let amount = 0;
-
-  // Jika value berupa objek { quantity, price }
-  if (typeof value === 'object' && value !== null && 'quantity' in value && 'price' in value) {
-    const quantity = parseFloat(value.quantity) || 0;
-    const price = parseFloat(value.price) || 0;
-    amount = quantity * price;
-  } else {
-    // Jika value adalah angka biasa
-    amount = parseFloat(value) || 0;
+  // Jika angka memiliki desimal, gunakan presisi penuh
+  if (value % 1 !== 0) {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 6, // Batasi hingga 6 angka desimal
+    }).format(value);
   }
 
+  // Jika angka bulat, tampilkan tanpa desimal
   return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: validCurrency,
-    minimumFractionDigits: 2
-  }).format(amount);
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0, // Tidak ada angka desimal
+  }).format(value);
 }

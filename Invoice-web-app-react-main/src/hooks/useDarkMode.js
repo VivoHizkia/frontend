@@ -1,9 +1,9 @@
-// src/hooks/useDarkMode.js
+
 import { useEffect, useState } from "react";
 
 export default function useDarkMode() {
   const [theme, setTheme] = useState(() => {
-    // coba ambil preference dari localStorage
+    
     return localStorage.getItem("theme") || "light";
   });
 
