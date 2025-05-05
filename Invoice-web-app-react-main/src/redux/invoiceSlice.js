@@ -80,7 +80,14 @@ const invoiceSlice = createSlice({
         createdAt,
         dueDate,
         currency,
+        tax, // Tambahkan tax
       } = action.payload;
+
+      const subtotal = item.reduce(
+        (acc, i) => acc + parseFloat((i.usage || 0) * (i.price || 0)).toFixed(2),
+        0
+      );
+      const taxAmount = (subtotal * (tax || 0)) / 100;
 
       const finalData = {
         id: invoiceNumber,
@@ -110,10 +117,9 @@ const invoiceSlice = createSlice({
           total: parseFloat((i.usage || 0) * (i.price || 0)).toFixed(2),
         })),
         currency: currency || "USD",
-        total: item.reduce(
-          (acc, i) => acc + parseFloat((i.usage || 0) * (i.price || 0)).toFixed(2),
-          0
-        ),
+        subtotal,
+        tax: tax || 0, // Simpan tax
+        total: subtotal + taxAmount, // Hitung total dengan pajak
       };
 
       state.allInvoice.push(finalData);
@@ -140,10 +146,17 @@ const invoiceSlice = createSlice({
         createdAt,
         dueDate,
         currency,
+        tax, // Tambahkan tax
       } = action.payload;
 
       const invoiceIndex = allInvoice.findIndex((invoice) => invoice.id === id);
       if (invoiceIndex !== -1) {
+        const subtotal = item.reduce(
+          (acc, i) => acc + parseFloat((i.usage || 0) * (i.price || 0)).toFixed(2),
+          0
+        );
+        const taxAmount = (subtotal * (tax || 0)) / 100;
+
         allInvoice[invoiceIndex] = {
           ...allInvoice[invoiceIndex],
           description,
@@ -166,7 +179,9 @@ const invoiceSlice = createSlice({
           createdAt,
           paymentDue: dueDate,
           currency,
-          total: item.reduce((acc, i) => acc + Number(i.total), 0),
+          subtotal,
+          tax: tax || 0, // Simpan tax
+          total: subtotal + taxAmount, // Hitung total dengan pajak
         };
         state.filteredInvoice = [...allInvoice]; // Perbarui filteredInvoice
       }

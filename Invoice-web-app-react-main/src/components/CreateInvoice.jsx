@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import AddItem from './AddItem';
 import { v4 as uuidv4 } from 'uuid';
 import { useDispatch } from 'react-redux';
 import invoiceSlice from '../redux/invoiceSlice';
-import { clients } from '../data/clients';
+import { formatCurrency } from '../functions/formatCurrency';
 import {
   validateSenderStreetAddress,
   validateSenderPostCode,
@@ -23,9 +22,9 @@ import {
 
 function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type }) {
   const dispatch = useDispatch();
-  const [currency, setCurrency] = useState('USD'); // Default currency
-  const [invoiceDate, setInvoiceDate] = useState(''); // Tambahkan state untuk tanggal
-  const [dueDate, setDueDate] = useState(''); // Tambahkan state untuk due date
+  const [currency, setCurrency] = useState('USD'); 
+  const [invoiceDate, setInvoiceDate] = useState(''); 
+  const [dueDate, setDueDate] = useState(''); 
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [isValidatorActive, setIsValidatorActive] = useState(false);
   const [filterValue, setFilterValue] = useState('');
@@ -45,6 +44,7 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [savedClients, setSavedClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState('');
+  const [tax, setTax] = useState(0); // State untuk pajak
 
   const onDelete = (id) => {
     setItem((prev) => prev.filter((el) => el.id !== id));
@@ -57,14 +57,14 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
       i.id === id
         ? {
             ...i,
-            [name]: name === 'price' || name === 'usage' ? value : value, // Biarkan nilai tetap string
+            [name]: name === 'price' || name === 'usage' ? parseFloat(value) || 0 : value, 
             total:
               name === 'price' || name === 'usage'
                 ? parseFloat(
                     ((name === 'usage' ? parseFloat(value) || 0 : i.usage || 0) *
                       (name === 'price' ? parseFloat(value) || 0 : i.price || 0)).toFixed(2)
                   )
-                : i.total, // Hitung total hanya jika `price` atau `usage` berubah
+                : i.total, 
           }
         : i
     );
@@ -144,6 +144,12 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
     localStorage.setItem('savedClients', JSON.stringify(updatedClients));
   };
 
+  const calculateTotal = () => {
+    const subtotal = item.reduce((sum, i) => sum + (i.usage || 0) * (i.price || 0), 0);
+    const taxAmount = tax ? (subtotal * parseFloat(tax)) / 100 : 0;
+    return subtotal + taxAmount;
+  };
+
   const onSubmit = () => {
     const payload = {
       description,
@@ -160,12 +166,13 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
       clientCountry,
       item: item.map((i) => ({
         ...i,
-        total: parseFloat((i.usage || 0) * (i.price || 0)).toFixed(2), // Total hanya menggunakan usage dan price
+        total: parseFloat((i.usage || 0) * (i.price || 0)).toFixed(2), 
       })),
       currency,
       invoiceNumber,
       createdAt: invoiceDate,
       dueDate,
+      tax: parseFloat(tax) || 0, // Tambahkan pajak ke payload
     };
 
     if (type === 'edit') {
@@ -174,7 +181,7 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
       dispatch(invoiceSlice.actions.addInvoice(payload));
     }
 
-    // Perbarui filter untuk memastikan invoice baru muncul
+    
     dispatch(invoiceSlice.actions.filterInvoice({ status: '' }));
 
     setOpenCreateInvoice(false);
@@ -190,7 +197,7 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
         initial={{ x: -500, opacity: 0 }}
         animate={{ opacity: 1, x: 0, transition: { type: 'spring', stiffness: 300, damping: 40, duration: 0.4 } }}
         exit={{ x: -700, transition: { duration: 0.2 } }}
-        className="scrollbar-hide flex flex-col dark:text-white dark:bg-[#141625] bg-white md:pl-[150px] py-16 px-6 h-screen md:w-[1024px] md:rounded-r-3xl" // Lebar diperbesar menjadi 1024px
+        className="scrollbar-hide flex flex-col dark:text-white dark:bg-[#141625] bg-white md:pl-[150px] py-16 px-6 h-screen md:w-[1024px] md:rounded-r-3xl" 
       >
         <h1 className="font-semibold dark:text-white text-3xl mb-6">
           {type === 'edit' ? 'Edit' : 'Create'} Invoice
@@ -267,6 +274,16 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
                   }`}
                 />
               </div>
+
+              {/* Save Client Button */}
+              <div className="col-span-3">
+                <button
+                  onClick={saveClient}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:opacity-80 mt-4"
+                >
+                  Save Client
+                </button>
+              </div>
               {/* Invoice Number */}
               <div className="col-span-3">
                 <label className="text-gray-400 dark:text-gray-300 block mb-1">Invoice Number</label>
@@ -278,6 +295,7 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
                   }`}
                 />
               </div>
+              
               {/* Invoice Date */}
               <div className="col-span-3">
                 <label className="text-gray-400 dark:text-gray-300 block mb-1">Invoice Date</label>
@@ -305,13 +323,7 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
             </div>
           </div>
 
-          {/* Save Client Button */}
-          <button
-            onClick={saveClient}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:opacity-80 mt-4"
-          >
-            Save Client
-          </button>
+          
 
           {/* Item List */}
           <div>
@@ -357,7 +369,7 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
                   <input
                     type="number"
                     name="usage"
-                    value={itemDetails.usage || ''} // Tampilkan kosong jika nilai 0
+                    value={itemDetails.usage || ''} 
                     onChange={(e) => handleOnChange(itemDetails.id, e)}
                     className="w-full py-2 px-4 mt-1 rounded border dark:bg-[#1E2139] dark:border-gray-600 dark:text-white"
                   />
@@ -367,7 +379,7 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
                   <input
                     type="number"
                     name="price"
-                    value={itemDetails.price || ''} // Tampilkan kosong jika nilai 0
+                    value={itemDetails.price || ''} 
                     onChange={(e) => handleOnChange(itemDetails.id, e)}
                     className="w-full py-2 px-4 mt-1 rounded border dark:bg-[#1E2139] dark:border-gray-600 dark:text-white"
                   />
@@ -376,7 +388,7 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
                   <label className="block text-sm text-gray-500 dark:text-gray-400">Total ({currency})</label>
                   <input
                     type="text"
-                    value={(itemDetails.usage * itemDetails.price).toFixed(2)} // Total hanya menggunakan usage dan price
+                    value={(itemDetails.usage * itemDetails.price).toFixed(2)} 
                     readOnly
                     className="w-full py-2 px-4 mt-1 rounded border bg-gray-200 dark:bg-[#1E2139] dark:border-gray-600 dark:text-white"
                   />
@@ -395,8 +407,8 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
                   ...prev,
                   {
                     name: '',
-                    quantity: prev.length + 1, // Quantity otomatis bertambah
-                    usage: 0, // Default usage = 0
+                    quantity: prev.length + 1, 
+                    usage: 0, 
                     price: 0,
                     total: 0,
                     id: uuidv4(),
@@ -407,6 +419,37 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
             >
               + Add New Item
             </button>
+          </div>
+
+          {/* Tax Input */}
+          <div className="col-span-3">
+            <label className="text-gray-400 dark:text-gray-300 block mb-1">Tax (%)</label>
+            <input
+              type="number"
+              value={tax}
+              onChange={(e) => setTax(e.target.value)}
+              placeholder="Enter tax percentage (e.g., 11)"
+              className="w-full py-2 px-4 rounded border dark:bg-[#1E2139] dark:text-white border-gray-300 dark:border-gray-600"
+            />
+          </div>
+
+          {/* Total Section */}
+          <div className="text-right mt-6 space-y-2 text-sm">
+            <p>
+              <span className="font-bold">Subtotal:</span> {formatCurrency(
+                item.reduce((sum, i) => sum + (i.usage || 0) * (i.price || 0), 0),
+                currency
+              )}
+            </p>
+            <p>
+              <span className="font-bold">Tax ({tax || 0}%):</span> {formatCurrency(
+                tax ? (item.reduce((sum, i) => sum + (i.usage || 0) * (i.price || 0), 0) * parseFloat(tax)) / 100 : 0,
+                currency
+              )}
+            </p>
+            <p className="text-lg font-bold">
+              <span>Total:</span> {formatCurrency(calculateTotal(), currency)}
+            </p>
           </div>
         </div>
 

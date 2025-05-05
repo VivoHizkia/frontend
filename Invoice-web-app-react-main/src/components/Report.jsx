@@ -13,17 +13,21 @@ function Report() {
     .reduce((acc, curr) => {
       const client = curr.clientName || "Unknown";
       const currency = curr.currency || "IDR";
-      const total = (curr.items || []).reduce((sum, item) => {
-        const price = parseFloat(item.price) || 0; // Pastikan nilai price valid
-        const usage = parseFloat(item.usage) || 0; // Pastikan nilai usage valid
+
+      // Hitung Subtotal dan Tax
+      const subtotal = (curr.items || []).reduce((sum, item) => {
+        const price = parseFloat(item.price) || 0;
+        const usage = parseFloat(item.usage) || 0;
         return sum + price * usage;
       }, 0);
+      const taxAmount = (subtotal * (curr.tax || 0)) / 100;
+      const total = subtotal + taxAmount;
 
       const key = `${client}___${currency}`;
       if (!acc[key]) acc[key] = { total: 0, invoices: [], currency };
 
       acc[key].total += total;
-      acc[key].invoices.push(curr);
+      acc[key].invoices.push({ ...curr, subtotal, taxAmount, total });
       return acc;
     }, {});
 
@@ -37,7 +41,7 @@ function Report() {
       <Sidebar selectedMenu={selectedMenu} onMenuSelect={setSelectedMenu} />
 
       {/* Main Content */}
-      <div className="bg-white dark:bg-[#1E2139] rounded-lg p-6 shadow-md mt-6 w-full pt-16"> {/* Tambahkan pt-16 */}
+      <div className="bg-white dark:bg-[#1E2139] rounded-lg p-6 shadow-md mt-6 w-full pt-16">
         <h2 className="text-2xl font-semibold dark:text-white mb-4">Laporan Piutang</h2>
         {Object.keys(piutangData).length > 0 ? (
           <ul className="space-y-4">
@@ -82,7 +86,6 @@ function Report() {
                               <div className="flex flex-col gap-1">
                                 <span className="font-semibold text-sm">{inv.id}</span>
                                 <span className="text-xs text-gray-500">{formattedDate}</span>
-                                
                               </div>
                               <span className="font-semibold text-sm whitespace-nowrap">
                                 {formattedInvTotal}
@@ -99,6 +102,7 @@ function Report() {
                                       <th className="px-2 py-1 text-center">Usage</th>
                                       <th className="px-2 py-1 text-right">Harga</th>
                                       <th className="px-2 py-1 text-right">Subtotal</th>
+                                      <th className="px-2 py-1 text-right">Tax</th>
                                     </tr>
                                   </thead>
                                   <tbody>
@@ -106,6 +110,7 @@ function Report() {
                                       const price = formatCurrency(item.price ?? 0, currency);
                                       const subtotalValue = (item.price ?? 0) * (item.usage ?? 0);
                                       const subtotal = formatCurrency(subtotalValue, currency);
+                                      const tax = inv.tax ? formatCurrency((subtotalValue * inv.tax) / 100, currency) : '-';
 
                                       return (
                                         <tr key={idx} className="border-t dark:border-gray-600">
@@ -113,6 +118,7 @@ function Report() {
                                           <td className="px-2 py-1 text-center">{item.usage}</td>
                                           <td className="px-2 py-1 text-right">{price}</td>
                                           <td className="px-2 py-1 text-right">{subtotal}</td>
+                                          <td className="px-2 py-1 text-right">{tax}</td>
                                         </tr>
                                       );
                                     })}

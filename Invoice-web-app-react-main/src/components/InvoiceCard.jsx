@@ -1,47 +1,46 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';   // Import useDispatch
-import invoiceSlice from '../redux/invoiceSlice';  // Import invoiceSlice
+import { useDispatch } from 'react-redux';
+import invoiceSlice from '../redux/invoiceSlice';
 import PaidStatus from './PaidStatus';
 import { formatCurrency } from '../functions/formatCurrency';
 import { FiEye, FiDownload, FiTrash2 } from 'react-icons/fi';
 import VoidModal from './VoidModal';
-import DeleteModal from './DeleteModal'; // Import DeleteModal
+import DeleteModal from './DeleteModal';
 
 function InvoiceCard({ invoice, onDelete, from }) {
-  const dispatch = useDispatch();    // Inisialisasi dispatch
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isVoidModalOpen, setIsVoidModalOpen] = useState(false);
   const [voidStatus, setVoidStatus] = useState('');
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State untuk modal delete
-  const [deleteInvoiceId, setDeleteInvoiceId] = useState(null); // State untuk menyimpan invoice ID yang akan dihapus
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteInvoiceId, setDeleteInvoiceId] = useState(null);
 
-  // Fungsi untuk menavigasi ke halaman invoice
   const handleView = () => {
     navigate(`/invoice?id=${invoice.id}`, { state: { from } });
   };
 
-  // Fungsi untuk mendownload invoice sebagai PDF
   const handleDownload = () => {
     navigate(`/invoice?id=${invoice.id}&download=true`, { state: { from } });
   };
 
-  // Fungsi untuk handle aksi Void/Unvoid
   const onVoidButtonClick = () => {
     const newStatus = invoice.status === 'void' ? 'pending' : 'void';
-    // Dispatch action untuk update status invoice
     dispatch(invoiceSlice.actions.updateInvoiceStatus({ id: invoice.id, status: newStatus }));
-    setIsVoidModalOpen(false); // Tutup modal setelah aksi
+    setIsVoidModalOpen(false);
   };
 
-  // Fungsi untuk handle aksi delete invoice
   const handleDelete = (invoiceId) => {
-    setDeleteInvoiceId(invoiceId); // Set ID invoice yang ingin dihapus
-    setIsDeleteModalOpen(true); // Tampilkan modal delete
+    setDeleteInvoiceId(invoiceId);
+    setIsDeleteModalOpen(true);
   };
 
-  // Jika invoice tidak ada, maka tidak akan merender komponen
   if (!invoice) return null;
+
+  // Perhitungan Subtotal, Tax, dan Total
+  const subtotal = invoice.items.reduce((sum, item) => sum + (item.usage || 0) * (item.price || 0), 0);
+  const taxAmount = (subtotal * (invoice.tax || 0)) / 100;
+  const total = subtotal + taxAmount;
 
   return (
     <>
@@ -58,10 +57,7 @@ function InvoiceCard({ invoice, onDelete, from }) {
       </td>
 
       <td className="w-1/6 py-4 px-4 font-medium text-black dark:text-white text-right">
-        {formatCurrency(
-          invoice.items.reduce((sum, item) => sum + (item.usage || 0) * (item.price || 0), 0),
-          invoice.currency || 'USD'
-        )}
+        {formatCurrency(total, invoice.currency || 'USD')}
       </td>
 
       <td className="w-1/6 py-4 px-4 text-center">
@@ -87,7 +83,7 @@ function InvoiceCard({ invoice, onDelete, from }) {
           </button>
 
           <button
-            onClick={() => handleDelete(invoice.id)} // Memanggil handleDelete untuk modal delete
+            onClick={() => handleDelete(invoice.id)}
             className="p-2 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900"
             title="Delete"
           >
@@ -97,18 +93,18 @@ function InvoiceCard({ invoice, onDelete, from }) {
       </td>
 
       <td className="py-5 px-6 text-center">
-      <button
-        onClick={() => {
-            setVoidStatus(invoice.status === 'void' ? 'unvoid' : 'void'); 
+        <button
+          onClick={() => {
+            setVoidStatus(invoice.status === 'void' ? 'unvoid' : 'void');
             setIsVoidModalOpen(true);
-        }}
-        className={`px-4 py-1 text-sm rounded-full shadow-md text-white transition-all duration-150 ${
+          }}
+          className={`px-4 py-1 text-sm rounded-full shadow-md text-white transition-all duration-150 ${
             invoice.status === 'void'
-            ? 'bg-gray-500 hover:bg-gray-600'
-            : 'bg-red-500 hover:bg-red-600'
-        }`}
+              ? 'bg-gray-500 hover:bg-gray-600'
+              : 'bg-red-500 hover:bg-red-600'
+          }`}
         >
-        {invoice.status === 'void' ? 'Unvoid' : 'Void'}
+          {invoice.status === 'void' ? 'Unvoid' : 'Void'}
         </button>
       </td>
 
@@ -121,15 +117,13 @@ function InvoiceCard({ invoice, onDelete, from }) {
         />
       )}
 
-      {/* Modal Delete */}
       {isDeleteModalOpen && (
         <DeleteModal
-          invoiceId={deleteInvoiceId} // Pass invoiceId ke dalam modal
+          invoiceId={deleteInvoiceId}
           onDeleteButtonClick={() => {
-            onDelete(deleteInvoiceId); // Panggil fungsi delete
-            setIsDeleteModalOpen(false); // Tutup modal setelah delete
+            onDelete(deleteInvoiceId);
           }}
-          setIsDeleteModalOpen={setIsDeleteModalOpen} // Fungsi untuk menutup modal
+          setIsDeleteModalOpen={setIsDeleteModalOpen}
         />
       )}
     </>
