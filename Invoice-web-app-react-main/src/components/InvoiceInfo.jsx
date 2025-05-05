@@ -8,7 +8,7 @@ import invoiceSlice from '../redux/invoiceSlice'
 import formatDate from '../functions/formatDate'
 import DeleteModal from './DeleteModal'
 import CreateInvoice from './CreateInvoice'
-import { formatCurrency } from '../functions/formatCurrency'
+import { formatCurrency, formatNumber } from '../functions/formatCurrency'; // Tambahkan formatNumber
 import logoMDI from "../assets/logo_mdi.png"
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
@@ -224,16 +224,16 @@ function InvoiceInfo({ onDelete }) {
               </div>
               {invoice.items.map((item, idx) => (
                 <div key={idx} className="grid grid-cols-6 p-2 border-t text-sm">
-                  <p className="col-span-1">{item.quantity || 0}</p>
+                  <p className="col-span-1">{formatNumber(item.quantity || 0)}</p> {/* Quantity */}
                   <div className="col-span-2">
                     <p className="font-medium">{item.name}</p>
                     <p className="text-gray-500 text-xs">{item.description || '-'}</p>
                   </div>
-                  <p className="col-span-1 text-right">{item.usage || 0}</p>
-                  <p className="col-span-1 text-right">{formatCurrency(item.price || 0, invoice.currency || 'USD')}</p>
+                  <p className="col-span-1 text-right">{formatNumber(item.usage || 0)}</p> {/* Usage */}
+                  <p className="col-span-1 text-right">{formatCurrency(item.price || 0, invoice.currency || 'USD')}</p> {/* Price */}
                   <p className="col-span-1 text-right">
                     {formatCurrency(
-                      (item.usage || 0) * (item.price || 0), // Total hanya menggunakan usage dan price
+                      (item.usage || 0) * (item.price || 0), // Amount = Usage * Price
                       invoice.currency || 'USD'
                     )}
                   </p>

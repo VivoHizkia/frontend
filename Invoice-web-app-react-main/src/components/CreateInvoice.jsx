@@ -50,20 +50,19 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
 
   const handleOnChange = (id, e) => {
     const { name, value } = e.target;
-
+  
     const updatedItems = item.map((i) =>
       i.id === id
         ? {
             ...i,
-            [name]: ['price', 'usage'].includes(name)
-              ? value === '' // Jika input kosong, set nilai menjadi 0
-                ? ''
-                : parseFloat(value) || 0
-              : value,
-            total: parseFloat(
-              ((name === 'usage' ? parseFloat(value) || 0 : i.usage || 0) *
-                (name === 'price' ? parseFloat(value) || 0 : i.price || 0)).toFixed(2)
-            ), // Total hanya menggunakan usage dan price
+            [name]: name === 'price' || name === 'usage' ? value : value, // Biarkan nilai tetap string
+            total:
+              name === 'price' || name === 'usage'
+                ? parseFloat(
+                    ((name === 'usage' ? parseFloat(value) || 0 : i.usage || 0) *
+                      (name === 'price' ? parseFloat(value) || 0 : i.price || 0)).toFixed(2)
+                  )
+                : i.total, // Hitung total hanya jika `price` atau `usage` berubah
           }
         : i
     );

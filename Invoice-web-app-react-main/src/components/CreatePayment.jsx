@@ -12,6 +12,8 @@ export default function CreatePayment({ openCreatePayment, setOpenCreatePayment 
   const [amountPaid, setAmountPaid] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [proofFile, setProofFile] = useState(null);
+  const [currency, setCurrency] = useState('USD'); // Default currency
+  const [clientName, setClientName] = useState('');
 
   const handleFileChange = (e) => {
     setProofFile(e.target.files[0]);
@@ -28,6 +30,8 @@ export default function CreatePayment({ openCreatePayment, setOpenCreatePayment 
       paymentDate,
       amountPaid: parseFloat(amountPaid),
       invoiceNumber,
+      clientName, // Tambahkan client name ke payload
+      currency, // Tambahkan kurs ke payload
       proofUrl: URL.createObjectURL(proofFile),
     };
 
@@ -78,6 +82,19 @@ export default function CreatePayment({ openCreatePayment, setOpenCreatePayment 
             />
           </div>
 
+          {/* Currency */}
+          <div>
+            <label className="block text-gray-600 dark:text-gray-300 mb-1">Currency</label>
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="w-full p-2 border rounded dark:bg-[#1E2139] dark:text-white"
+            >
+              <option value="USD">USD (Dollar)</option>
+              <option value="IDR">IDR (Rupiah)</option>
+            </select>
+          </div>
+
           {/* Amount Paid */}
           <div>
             <label className="block text-gray-600 dark:text-gray-300 mb-1">Amount Paid</label>
@@ -87,6 +104,18 @@ export default function CreatePayment({ openCreatePayment, setOpenCreatePayment 
               onChange={e => setAmountPaid(e.target.value)}
               className="w-full p-2 border rounded dark:bg-[#1E2139] dark:text-white"
               placeholder="0.00"
+            />
+          </div>
+
+          {/* Client Name */}
+          <div>
+            <label className="block text-gray-600 dark:text-gray-300 mb-1">Client Name</label>
+            <input
+              type="text"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              className="w-full p-2 border rounded dark:bg-[#1E2139] dark:text-white"
+              placeholder="Enter client name"
             />
           </div>
 
@@ -111,7 +140,7 @@ export default function CreatePayment({ openCreatePayment, setOpenCreatePayment 
         <div className="flex justify-end space-x-4 mt-8">
           <button
             onClick={() => setOpenCreatePayment(false)}
-            className="px-6 py-2 bg-gray-200 dark:bg-[#252945] rounded hover:opacity-80"
+            className="px-6 py-2 bg-red-600 dark:bg-[#252945] rounded hover:opacity-80"
           >
             Cancel
           </button>
