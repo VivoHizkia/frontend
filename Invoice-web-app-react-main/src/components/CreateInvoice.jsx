@@ -43,6 +43,8 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
   const [paymentTerms, setPaymentTerms] = useState(7);
   const [item, setItem] = useState([{ name: '', quantity: 1, price: 0, total: 0, id: uuidv4() }]);
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [savedClients, setSavedClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState('');
 
   const onDelete = (id) => {
     setItem((prev) => prev.filter((el) => el.id !== id));
@@ -124,6 +126,24 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
     }
   }, [invoice, isFirstLoad, type]);
 
+  useEffect(() => {
+    const clientsFromStorage = JSON.parse(localStorage.getItem('savedClients')) || [];
+    setSavedClients(clientsFromStorage);
+  }, []);
+
+  const saveClient = () => {
+    const newClient = {
+      clientName,
+      clientStreet,
+      clientPostCode,
+      clientCountry,
+    };
+
+    const updatedClients = [...savedClients, newClient];
+    setSavedClients(updatedClients);
+    localStorage.setItem('savedClients', JSON.stringify(updatedClients));
+  };
+
   const onSubmit = () => {
     const payload = {
       description,
@@ -181,6 +201,32 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
           <div>
             <h2 className="text-[#7c5dfa] mb-2 font-medium">Bill To</h2>
             <div className="grid grid-cols-3 gap-4">
+              {/* Select Client */}
+              <div className="col-span-3">
+                <label className="text-gray-400 dark:text-gray-300 block mb-1">Select Client</label>
+                <select
+                  value={selectedClient}
+                  onChange={(e) => {
+                    const client = savedClients.find((c) => c.clientName === e.target.value);
+                    if (client) {
+                      setClientName(client.clientName);
+                      setClientStreet(client.clientStreet);
+                      setClientPostCode(client.clientPostCode);
+                      setClientCountry(client.clientCountry);
+                    }
+                    setSelectedClient(e.target.value);
+                  }}
+                  className="w-full py-2 px-4 rounded border dark:bg-[#1E2139] dark:text-white border-gray-300 dark:border-gray-600"
+                >
+                  <option value="">Select a saved client</option>
+                  {savedClients.map((client, idx) => (
+                    <option key={idx} value={client.clientName}>
+                      {client.clientName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="col-span-3">
                 <label className="text-gray-400 dark:text-gray-300 block mb-1">Client Name</label>
                 <input
@@ -258,6 +304,14 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
               </div>
             </div>
           </div>
+
+          {/* Save Client Button */}
+          <button
+            onClick={saveClient}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:opacity-80 mt-4"
+          >
+            Save Client
+          </button>
 
           {/* Item List */}
           <div>
