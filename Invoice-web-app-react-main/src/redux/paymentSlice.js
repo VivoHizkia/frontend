@@ -25,11 +25,20 @@ const paymentSlice = createSlice({
         state.payments[index] = action.payload;
       }
     },
+
+    // Memperbarui status pembayaran berdasarkan ID
+    updatePaymentStatus: (state, action) => {
+      const { id, isVoid } = action.payload;
+      const payment = state.payments.find((p) => p.id === id);
+      if (payment) {
+        payment.isVoid = isVoid;
+      }
+    },
   },
 });
 
 // Mengekspor action yang digunakan di komponen untuk dispatch
-export const { addPayment, deletePayment, updatePayment } = paymentSlice.actions;
+export const { addPayment, deletePayment, updatePayment, updatePaymentStatus } = paymentSlice.actions;
 
 // Mengekspor reducer untuk digunakan di store.js
 export default paymentSlice.reducer;

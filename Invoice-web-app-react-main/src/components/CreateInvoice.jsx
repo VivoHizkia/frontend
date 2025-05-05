@@ -57,12 +57,12 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
       i.id === id
         ? {
             ...i,
-            [name]: name === 'price' || name === 'usage' ? parseFloat(value) || 0 : value, 
+            [name]: name === 'price' || name === 'usage' ? value : value, // Biarkan value tetap string untuk price
             total:
               name === 'price' || name === 'usage'
                 ? parseFloat(
                     ((name === 'usage' ? parseFloat(value) || 0 : i.usage || 0) *
-                      (name === 'price' ? parseFloat(value) || 0 : i.price || 0)).toFixed(2)
+                      (name === 'price' ? parseFloat(value) || 0 : i.price || 0)).toFixed(4)
                   )
                 : i.total, 
           }
@@ -377,10 +377,16 @@ function CreateInvoice({ openCreateInvoice, setOpenCreateInvoice, invoice, type 
                 <div className="flex-1 mx-2">
                   <label className="block text-sm text-gray-500 dark:text-gray-400">Price ({currency})</label>
                   <input
-                    type="number"
+                    type="text"
                     name="price"
-                    value={itemDetails.price || ''} 
-                    onChange={(e) => handleOnChange(itemDetails.id, e)}
+                    value={itemDetails.price} // Biarkan value apa adanya
+                    onInput={(e) => {
+                      const value = e.target.value;
+                      // Validasi input agar hanya angka dan desimal yang diperbolehkan
+                      if (/^(0|[1-9]\d*)(\.\d{0,4})?$/.test(value) || value === '' || value === '0' || value === '0.') {
+                        handleOnChange(itemDetails.id, { target: { name: 'price', value } });
+                      }
+                    }}
                     className="w-full py-2 px-4 mt-1 rounded border dark:bg-[#1E2139] dark:border-gray-600 dark:text-white"
                   />
                 </div>

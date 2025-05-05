@@ -90,6 +90,8 @@ function InvoiceInfo({ onDelete }) {
     }
   };
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   return (
     <div>
       <button
@@ -138,12 +140,15 @@ function InvoiceInfo({ onDelete }) {
               >
                 Edit
               </button>
-              <button
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="text-white bg-red-500 hover:opacity-80 py-2 px-5 rounded-full"
-              >
-                Delete
-              </button>
+              {/* Tombol Delete */}
+              {user?.role === "admin" && (
+                <button
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="text-white bg-red-500 hover:opacity-80 py-2 px-5 rounded-full"
+                >
+                  Delete
+                </button>
+              )}
               <button
                 onClick={() => {
                   setVoidStatus(invoice.status === 'void' ? 'pending' : 'void');
@@ -234,7 +239,7 @@ function InvoiceInfo({ onDelete }) {
                 )}
               </p>
               <p>
-                <span className="font-bold">Tax ({invoice.tax || 0}%):</span> {invoice.tax ? formatCurrency(
+                <span className="font-bold">Tax:</span> {invoice.tax ? formatCurrency(
                   invoice.items.reduce((sum, item) => sum + (item.usage || 0) * (item.price || 0), 0) * (invoice.tax / 100),
                   invoice.currency || 'USD'
                 ) : '-'}
@@ -254,6 +259,7 @@ function InvoiceInfo({ onDelete }) {
                 <p className="mb-1 font-semibold">For and on behalf of</p>
                 <p>PT Mobile Data Indonesia</p>
                 <div className="h-16 border-b my-4"></div>
+                <p className="text-center font-semibold">Vivo Hizkia Imanuel</p>
                 <p className="mt-2">Authorized Signature</p>
               </div>
               <div className="text-right mt-6 md:mt-0">

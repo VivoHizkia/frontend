@@ -16,6 +16,8 @@ function InvoiceCard({ invoice, onDelete, from }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteInvoiceId, setDeleteInvoiceId] = useState(null);
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   const handleView = () => {
     navigate(`/invoice?id=${invoice.id}`, { state: { from } });
   };
@@ -82,13 +84,16 @@ function InvoiceCard({ invoice, onDelete, from }) {
             <FiDownload size={16} />
           </button>
 
-          <button
-            onClick={() => handleDelete(invoice.id)}
-            className="p-2 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900"
-            title="Delete"
-          >
-            <FiTrash2 size={16} />
-          </button>
+          {/* Delete Button */}
+          {user?.role === "admin" && (
+            <button
+              onClick={() => handleDelete(invoice.id)}
+              className="p-2 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900"
+              title="Delete"
+            >
+              <FiTrash2 size={16} />
+            </button>
+          )}
         </div>
       </td>
 

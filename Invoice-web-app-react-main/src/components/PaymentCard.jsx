@@ -1,10 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { formatCurrency } from '../functions/formatCurrency';
 import { FaFileInvoice, FaCalendarAlt, FaMoneyBillWave, FaLink, FaUser } from 'react-icons/fa';
+import VoidModal from './VoidModal'; 
+import { useDispatch } from 'react-redux';
+import { updatePaymentStatus } from '../redux/paymentSlice';
 
-function PaymentCard({ payment }) {
+function PaymentCard({ payment, onVoid }) {
+  const [isVoidModalOpen, setIsVoidModalOpen] = useState(false); 
+  const [isVoid, setIsVoid] = useState(payment.isVoid); 
+  const dispatch = useDispatch();
+
+  const handleVoidClick = () => {
+    setIsVoidModalOpen(true); 
+  };
+
+  const onVoidButtonClick = () => {
+    if (typeof onVoid === 'function') {
+      onVoid(payment.id, !isVoid); 
+      setIsVoid(!isVoid); 
+    } else {
+      console.error('onVoid is not a function');
+      dispatch(updatePaymentStatus({ id: payment.id, isVoid: !isVoid }));
+      setIsVoid(!isVoid);
+    }
+    setIsVoidModalOpen(false); 
+  };
+
   return (
-    <div className="bg-white dark:bg-[#1E2139] rounded-lg shadow-md p-6 flex flex-col space-y-6">
+    <div
+      className={`relative bg-white dark:bg-[#1E2139] rounded-lg shadow-md p-6 flex flex-col space-y-6 ${
+        isVoid ? 'opacity-50 bg-gray-200 dark:bg-gray-700 border-red-500' : ''
+      }`}
+    >
+      {/* Void Badge */}
+      {isVoid && (
+        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+          VOID
+        </div>
+      )}
+
       {/* Client Name */}
       <div className="flex items-center space-x-2">
         <FaUser className="text-gray-500 dark:text-gray-400" />
@@ -59,6 +93,26 @@ function PaymentCard({ payment }) {
           </a>
         </div>
       </div>
+
+      {/* Void/Unvoid Button */}
+      <button
+        onClick={handleVoidClick}
+        className={`mt-4 px-4 py-2 rounded ${
+          isVoid ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-red-500 text-white hover:bg-red-600'
+        }`}
+      >
+        {isVoid ? 'Unvoid Payment' : 'Void Payment'}
+      </button>
+
+      {/* Void Modal */}
+      {isVoidModalOpen && (
+        <VoidModal
+          invoice={payment} 
+          status={isVoid ? 'unvoid' : 'void'} 
+          onVoidButtonClick={onVoidButtonClick}
+          setIsVoidModalOpen={setIsVoidModalOpen}
+        />
+      )}
     </div>
   );
 }
