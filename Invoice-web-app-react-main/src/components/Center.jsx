@@ -22,7 +22,7 @@ function Center() {
   const [isDropdown, setIsDropdown] = useState(false);
   const [openCreateInvoice, setOpenCreateInvoice] = useState(false);
   const [filterValue, setFilterValue] = useState('');
-  const [selectedMenu, setSelectedMenu] = useState('dashboard');
+  const [selectedMenu, setSelectedMenu] = useState('invoices');
   const [openCreatePayment, setOpenCreatePayment] = useState(false); // State untuk membuka modal payment
 
   // Redux Selectors

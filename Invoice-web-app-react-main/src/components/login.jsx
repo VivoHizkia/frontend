@@ -19,7 +19,7 @@ function Login() {
       localStorage.setItem("loggedIn", "true");
 
       setTimeout(() => {
-        navigate('/invoices'); // ✅ Redirect langsung ke /invoices
+        navigate('/invoices'); 
       }, 10);
     } else if (email === 'user@example.com' && password === 'user') {
       const user = {
@@ -30,7 +30,7 @@ function Login() {
       localStorage.setItem("loggedIn", "true");
 
       setTimeout(() => {
-        navigate('/invoices'); // ✅ Redirect langsung ke /invoices
+        navigate('/invoices');
       }, 10);
     } else {
       alert('Email atau password salah!');

@@ -115,11 +115,7 @@ function App() {
           {/* Dashboard (terproteksi) */}
           <Route
             path="/"
-            element={
-              <PrivateRoute>
-                <Center />
-              </PrivateRoute>
-            }
+            element={<Navigate to="/invoices" replace />}
           />
 
           {/* Halaman Invoices */}
